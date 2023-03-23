@@ -1,4 +1,4 @@
-import {HTTPRequest, PageEmittedEvents} from "puppeteer-core";
+import {HTTPRequest, Page, PageEmittedEvents} from "puppeteer-core";
 
 const config = require('config')
 const axios = require('axios')
@@ -95,6 +95,22 @@ async function automation() {
     }
     return result;
 }
+
+async function getRequirements(page: Page): Promise<Map<string, string>> {
+    const requirementsMap: Map<string, string> = new Map();
+
+    await page.goto(config.link, {timeout: 0, waitUntil: 'networkidle0'});
+    const actions = await page.$$eval('li.css-qq28hd > span.css-lgbo0i', (spans) => {return spans.map(span => span.textContent.split(' ')[0])});
+    const links = await page.$$eval('li.css-qq28hd > span.css-lgbo0i > a', (links) => {return links.map(link => link.href)});
+
+    for (let i = 0; i < actions.length; i++) {
+        requirementsMap.set(actions[i], links[i]);
+    }
+
+    return requirementsMap;
+}
+
+
 
 async function printResult() {
     console.log(await automation());
